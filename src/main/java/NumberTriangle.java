@@ -119,9 +119,17 @@ public class NumberTriangle {
         java.util.List<NumberTriangle> previousRow = new java.util.ArrayList<>();
         NumberTriangle top = null;
 
-        // open the file and get a BufferedReader object whose methods
-        // are more convenient to work with when reading the file contents.
+        // open the file and get a BufferedReader object
         InputStream inputStream = NumberTriangle.class.getClassLoader().getResourceAsStream(fname);
+
+        // --- START OF THE FIX ---
+        // Add a check to ensure the file was actually found.
+        if (inputStream == null) {
+            // If not found, throw an exception with a helpful message.
+            throw new FileNotFoundException("Resource file not found: " + fname);
+        }
+        // --- END OF THE FIX ---
+
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 
         String line = br.readLine();
@@ -132,8 +140,16 @@ public class NumberTriangle {
 
             // Create NumberTriangle objects for each number in the current line.
             for (String numStr : numbers) {
-                int value = Integer.parseInt(numStr);
-                currentRow.add(new NumberTriangle(value));
+                if (!numStr.isEmpty()) { // Avoid errors on empty strings
+                    int value = Integer.parseInt(numStr);
+                    currentRow.add(new NumberTriangle(value));
+                }
+            }
+
+            // This logic prevents a crash if a line is blank
+            if (currentRow.isEmpty()) {
+                line = br.readLine();
+                continue; // Skip to the next iteration
             }
 
             if (top == null) {
@@ -168,7 +184,5 @@ public class NumberTriangle {
         // [not for credit]
         // you can implement NumberTriangle's maxPathSum method if you want to try to solve
         // Problem 18 from project Euler [not for credit]
-        mt.maxSumPath();
-        System.out.println(mt.getRoot());
     }
 }
