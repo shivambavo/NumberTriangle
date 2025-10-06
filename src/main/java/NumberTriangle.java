@@ -88,8 +88,19 @@ public class NumberTriangle {
      *
      */
     public int retrieve(String path) {
-        // TODO implement this method
-        return -1;
+        // Start the traversal from the current node (`this`).
+        NumberTriangle currentNode = this;
+
+        // Iterate through each character in the path string.
+        for (char direction : path.toCharArray()) {
+            if (direction == 'l') {
+                currentNode = currentNode.left;
+            } else if (direction == 'r') {
+                currentNode = currentNode.right;
+            }
+        }
+        // After following the path, return the root value of the final node.
+        return currentNode.getRoot();
     }
 
     /** Read in the NumberTriangle structure from a file.
@@ -104,27 +115,46 @@ public class NumberTriangle {
      * @throws IOException may naturally occur if an issue reading the file occurs
      */
     public static NumberTriangle loadTriangle(String fname) throws IOException {
+        // Use a list to keep track of the nodes in the previous row we processed.
+        java.util.List<NumberTriangle> previousRow = new java.util.ArrayList<>();
+        NumberTriangle top = null;
+
         // open the file and get a BufferedReader object whose methods
         // are more convenient to work with when reading the file contents.
         InputStream inputStream = NumberTriangle.class.getClassLoader().getResourceAsStream(fname);
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
 
-
-        // TODO define any variables that you want to use to store things
-
-        // will need to return the top of the NumberTriangle,
-        // so might want a variable for that.
-        NumberTriangle top = null;
-
         String line = br.readLine();
         while (line != null) {
+            // A list to store the nodes for the current row we are building.
+            java.util.List<NumberTriangle> currentRow = new java.util.ArrayList<>();
+            String[] numbers = line.trim().split("\\s+");
 
-            // remove when done; this line is included so running starter code prints the contents of the file
-            System.out.println(line);
+            // Create NumberTriangle objects for each number in the current line.
+            for (String numStr : numbers) {
+                int value = Integer.parseInt(numStr);
+                currentRow.add(new NumberTriangle(value));
+            }
 
-            // TODO process the line
+            if (top == null) {
+                // This is the first line of the file, so this is the top of our triangle.
+                top = currentRow.get(0);
+            } else {
+                // Link the nodes from the previous row to the nodes in the current row.
+                for (int i = 0; i < previousRow.size(); i++) {
+                    NumberTriangle parent = previousRow.get(i);
+                    NumberTriangle leftChild = currentRow.get(i);
+                    NumberTriangle rightChild = currentRow.get(i + 1);
 
-            //read the next line
+                    parent.setLeft(leftChild);
+                    parent.setRight(rightChild);
+                }
+            }
+
+            // The current row now becomes the previous row for the next iteration.
+            previousRow = currentRow;
+
+            // Read the next line
             line = br.readLine();
         }
         br.close();
